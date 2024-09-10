@@ -1,1 +1,1 @@
-A WordPress plugin that lets users subscribe to Klaviyo lists set by you in the admin dashboard. Users can choose and subscribe to multiple lists at once.
+A custom WordPress plugin that shows a Klaviyo subscription form. Users can choose and subscribe to multiple lists. You can add as many Klaviyo lists as you want from the admin dashboard.
