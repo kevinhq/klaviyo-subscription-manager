@@ -3,7 +3,7 @@
  * Plugin Name: Klaviyo Subscription Plugin
  * Description: A WordPress plugin for managing Klaviyo subscription lists and integrating forms using shortcodes.
  * Version: 1.0
- * Author: Your Name
+ * Author: k@kevinhq.com
  */
 
 defined('ABSPATH') or die('No script kiddies please!');
