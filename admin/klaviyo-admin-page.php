@@ -20,15 +20,17 @@ function klaviyo_admin_page() {
     global $wpdb;
     $table_name = $wpdb->prefix . 'klaviyo_details';
 
+    $edit_mode = false;
+    $list_to_edit = null;
+
     // Handle GET actions (edit and delete)
     if (isset($_GET['action']) && isset($_GET['id'])) {
         $action = $_GET['action'];
         $id = intval($_GET['id']);
 
         if ($action === 'edit') {
-            // Fetch the list details and populate the form
-            $list = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $id));
-            // You'll need to modify your form to use these values
+            $edit_mode = true;
+            $list_to_edit = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $id));
         } elseif ($action === 'delete') {
             // Delete the list
             $wpdb->delete($table_name, array('id' => $id), array('%d'));
@@ -38,7 +40,30 @@ function klaviyo_admin_page() {
 
     // Handle form submission (CRUD operations)
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        // Process form data and handle CRUD
+        $api_key = sanitize_text_field($_POST['api_key']);
+        $list_id = sanitize_text_field($_POST['list_id']);
+        $list_name = sanitize_text_field($_POST['list_name']);
+        $url = esc_url_raw($_POST['url']);
+
+        if (isset($_POST['id'])) {
+            // Update existing list
+            $wpdb->update(
+                $table_name,
+                array('api_key' => $api_key, 'list_id' => $list_id, 'list_name' => $list_name, 'url' => $url),
+                array('id' => $_POST['id']),
+                array('%s', '%s', '%s', '%s'),
+                array('%d')
+            );
+            echo "<div class='updated'><p>List updated successfully.</p></div>";
+        } else {
+            // Insert new list
+            $wpdb->insert(
+                $table_name,
+                array('api_key' => $api_key, 'list_id' => $list_id, 'list_name' => $list_name, 'url' => $url),
+                array('%s', '%s', '%s', '%s')
+            );
+            echo "<div class='updated'><p>New list added successfully.</p></div>";
+        }
     }
 
     // Fetch all lists
@@ -49,21 +74,28 @@ function klaviyo_admin_page() {
     <div class="wrap">
         <h1>Klaviyo Lists</h1>
         <form method="POST" action="">
+            <?php if ($edit_mode): ?>
+                <input type="hidden" name="id" value="<?php echo $list_to_edit->id; ?>">
+            <?php endif; ?>
             <table>
                 <tr>
-                    <td>API Key:</td><td><input type="text" name="api_key" required></td>
+                    <td>API Key:</td>
+                    <td><input type="text" name="api_key" value="<?php echo $edit_mode ? esc_attr($list_to_edit->api_key) : ''; ?>" required></td>
                 </tr>
                 <tr>
-                    <td>List ID:</td><td><input type="text" name="list_id" required></td>
+                    <td>List ID:</td>
+                    <td><input type="text" name="list_id" value="<?php echo $edit_mode ? esc_attr($list_to_edit->list_id) : ''; ?>" required></td>
                 </tr>
                 <tr>
-                    <td>List Name:</td><td><input type="text" name="list_name" required></td>
+                    <td>List Name:</td>
+                    <td><input type="text" name="list_name" value="<?php echo $edit_mode ? esc_attr($list_to_edit->list_name) : ''; ?>" required></td>
                 </tr>
                 <tr>
-                    <td>URL:</td><td><input type="text" name="url" required></td>
+                    <td>URL:</td>
+                    <td><input type="text" name="url" value="<?php echo $edit_mode ? esc_attr($list_to_edit->url) : ''; ?>" required></td>
                 </tr>
                 <tr>
-                    <td colspan="2"><input type="submit" value="Save List"></td>
+                    <td colspan="2"><input type="submit" value="<?php echo $edit_mode ? 'Update List' : 'Save List'; ?>"></td>
                 </tr>
             </table>
         </form>
